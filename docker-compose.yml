@@ -1,0 +1,47 @@
+version: "3.9"
+services:
+  web:
+    container_name: web
+    init: true
+    build:
+      context: web
+      dockerfile: Dockerfile
+    restart: 'always'
+    ports:
+      - 80:80
+    depends_on:
+      - mysql
+    networks:
+      - hillel
+  mysql:
+    container_name: mysql
+    init: true
+    image: mariadb:10.6.2-focal
+    restart: 'always'
+    ports:
+      - 3306:3306
+    networks:
+      - hillel
+    volumes:
+      - ./mysql/mysql-table:/docker-entrypoint-initdb.d
+      - ./mysql/mysql.cnf:/etc/mysql/conf.d/my.cnf
+      - ./mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    env_file:
+      - .env
+
+volumes:
+  mysql:
+    name: mysql-data
+
+networks:
+  hillel:
+    name: hillel
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
